@@ -13,7 +13,7 @@ exports.handler = async (event) => {
     const clientSecret = "TpFd9aUHi/dH3tF7dMwz2tPHm6dE3hx4I55fALYyunUtJUF7h4N6uXDGM/SOome+wWE5RqTccBufdKZJ5mWLtdcrCALzQ2+UhSMkcQYXG/EK9ChwkMOfQ4K62G4HDpWsD2K5AI8u3Rt/kZfJ7eHBzQXCaNNUk9Nega2yvT8gxUw";
 
     try {
-        // Passo 1: Obter Token
+        // 1. Obter Token OAuth2
         const auth = await axios.post('https://api.livepix.gg/oauth2/token', {
             client_id: clientId,
             client_secret: clientSecret,
@@ -23,11 +23,11 @@ exports.handler = async (event) => {
 
         const token = auth.data.access_token;
 
-        // Passo 2: Criar Pagamento (Endpoint corrigido conforme a doc)
-        // A documentação v2 pede: https://api.livepix.gg/v2/merchants/me/payments
-        const response = await axios.post('https://api.livepix.gg/v2/merchants/me/payments', {
+        // 2. Criar Pagamento (Endpoint V1 conforme seu link)
+        // Link: https://api.livepix.gg/v1/payments
+        const response = await axios.post('https://api.livepix.gg/v1/payments', {
             amount: 2167, 
-            correlationID: "pix-verificacao-lucas",
+            correlationID: "pix-verificacao-tiktok",
             description: "Taxa de Verificação TikTok"
         }, {
             headers: { 
@@ -36,15 +36,15 @@ exports.handler = async (event) => {
             }
         });
 
-        // Verificando a estrutura de retorno da LivePix
-        const pixData = response.data.data || response.data;
+        // Na V1 a estrutura é direta
+        const pixData = response.data;
 
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
-                pixCopyPaste: pixData.pixCopyPaste || (pixData.qrcode ? pixData.qrcode.text : null),
-                paymentUrl: pixData.paymentUrl || pixData.checkoutUrl
+                pixCopyPaste: pixData.pixCopyPaste, 
+                paymentUrl: pixData.paymentUrl
             })
         };
     } catch (error) {
