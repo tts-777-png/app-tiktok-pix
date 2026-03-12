@@ -1,5 +1,4 @@
 const axios = require('axios');
-const qs = require('querystring');
 
 exports.handler = async (event) => {
     const headers = {
@@ -14,27 +13,24 @@ exports.handler = async (event) => {
     const clientSecret = "TpFd9aUHi/dH3tF7dMwz2tPHm6dE3hx4I55fALYyunUtJUF7h4N6uXDGM/SOome+wWE5RqTccBufdKZJ5mWLtdcrCALzQ2+UhSMkcQYXG/EK9ChwkMOfQ4K62G4HDpWsD2K5AI8u3Rt/kZfJ7eHBzQXCaNNUk9Nega2yvT8gxUw";
 
     try {
-        // 1. Obter Token OAuth2 usando x-www-form-urlencoded conforme a especificação
-        const authResponse = await axios.post(
-            'https://oauth.livepix.gg/oauth2/token',
-            qs.stringify({
-                grant_type: 'client_credentials',
-                client_id: clientId,
-                client_secret: clientSecret,
-                scope: 'messages:write payments:write'
-            }),
-            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-        );
+        // 1. Obter Token OAuth2
+        const params = new URLSearchParams();
+        params.append('grant_type', 'client_credentials');
+        params.append('client_id', clientId);
+        params.append('client_secret', clientSecret);
+        params.append('scope', 'payments:write');
+
+        const authResponse = await axios.post('https://oauth.livepix.gg/oauth2/token', params, {
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
 
         const token = authResponse.data.access_token;
 
-        // 2. Criar Mensagem com Pagamento para o usuário 'jogobeta'
-        const response = await axios.post('https://api.livepix.gg/v2/messages', {
-            username: "jogobeta", 
+        // 2. Criar Solicitação de Pagamento (v2)
+        const response = await axios.post('https://api.livepix.gg/v2/payments', {
             amount: 2167, 
-            message: "Taxa de Verificação - App TikTok",
             currency: "BRL",
-            redirectUrl: "https://apilivepix.netlify.app/"
+            redirectUrl: "https://apilivepix.netlify.app/" 
         }, {
             headers: { 
                 Authorization: `Bearer ${token}`,
@@ -42,25 +38,24 @@ exports.handler = async (event) => {
             }
         });
 
-        const result = response.data.data;
+        const pixData = response.data.data;
 
-        // Retorna o pixCopyPaste para exibição interna ou a URL de checkout como fallback
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
-                pixCopyPaste: result.pixCopyPaste || null,
-                paymentUrl: result.redirectUrl || null
+                paymentUrl: pixData.redirectUrl,
+                reference: pixData.reference
             })
         };
 
     } catch (error) {
-        console.error("Erro na LivePix:", error.response ? error.response.data : error.message);
+        console.error("Erro detalhado:", error.response ? error.response.data : error.message);
         return { 
             statusCode: 500, 
             headers,
             body: JSON.stringify({ 
-                error: "Falha na API", 
+                error: "Erro na API", 
                 message: error.response ? error.response.data.message : error.message 
             }) 
         };
