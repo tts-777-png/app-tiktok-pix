@@ -1,4 +1,5 @@
 const axios = require('axios');
+const qs = require('querystring');
 
 exports.handler = async (event) => {
     const headers = {
@@ -9,26 +10,30 @@ exports.handler = async (event) => {
 
     if (event.httpMethod === "OPTIONS") return { statusCode: 200, headers, body: "" };
 
+    // 1. Pegar o valor enviado pelo clique do botão no HTML
+    const body = JSON.parse(event.body);
+    const valorCentavos = Math.round(body.valor * 100); // Converte R$ para centavos
+
     const clientId = "d8b77fe4-0267-4057-9a7c-74a022ee1b6a";
     const clientSecret = "TpFd9aUHi/dH3tF7dMwz2tPHm6dE3hx4I55fALYyunUtJUF7h4N6uXDGM/SOome+wWE5RqTccBufdKZJ5mWLtdcrCALzQ2+UhSMkcQYXG/EK9ChwkMOfQ4K62G4HDpWsD2K5AI8u3Rt/kZfJ7eHBzQXCaNNUk9Nega2yvT8gxUw";
 
     try {
-        // 1. Obter Token OAuth2
-        const params = new URLSearchParams();
-        params.append('grant_type', 'client_credentials');
-        params.append('client_id', clientId);
-        params.append('client_secret', clientSecret);
-        params.append('scope', 'payments:write');
-
-        const authResponse = await axios.post('https://oauth.livepix.gg/oauth2/token', params, {
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-        });
+        const authResponse = await axios.post(
+            'https://oauth.livepix.gg/oauth2/token',
+            qs.stringify({
+                grant_type: 'client_credentials',
+                client_id: clientId,
+                client_secret: clientSecret,
+                scope: 'payments:write'
+            }),
+            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+        );
 
         const token = authResponse.data.access_token;
 
-        // 2. Criar Solicitação de Pagamento (v2)
+        // 2. Criar Pagamento com o valor dinâmico
         const response = await axios.post('https://api.livepix.gg/v2/payments', {
-            amount: 2167, 
+            amount: valorCentavos, 
             currency: "BRL",
             redirectUrl: "https://apilivepix.netlify.app/" 
         }, {
@@ -38,26 +43,12 @@ exports.handler = async (event) => {
             }
         });
 
-        const pixData = response.data.data;
-
         return {
             statusCode: 200,
             headers,
-            body: JSON.stringify({
-                paymentUrl: pixData.redirectUrl,
-                reference: pixData.reference
-            })
+            body: JSON.stringify({ paymentUrl: response.data.data.redirectUrl })
         };
-
     } catch (error) {
-        console.error("Erro detalhado:", error.response ? error.response.data : error.message);
-        return { 
-            statusCode: 500, 
-            headers,
-            body: JSON.stringify({ 
-                error: "Erro na API", 
-                message: error.response ? error.response.data.message : error.message 
-            }) 
-        };
+        return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
     }
 };

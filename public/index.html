@@ -3,49 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teste LivePix Netlify</title>
+    <title>Lucas E-com Test</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; background: #010101; color: white; }
-        .btn-pay { background: #ff0050; color: white; border: none; padding: 15px 30px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .btn-pay:disabled { background: #555; cursor: not-allowed; }
-        .loader { margin-top: 20px; color: #ff0050; display: none; }
+        body { font-family: 'Inter', sans-serif; background: #0f0f0f; color: white; text-align: center; }
+        .vitrine { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 20px; }
+        .produto { background: #1a1a1a; padding: 20px; border-radius: 15px; border: 1px solid #333; }
+        .preco { color: #00f2ea; font-size: 24px; font-weight: bold; margin: 10px 0; }
+        .btn-comprar { background: #ff0050; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
+        .btn-comprar:disabled { background: #555; }
     </style>
 </head>
 <body>
-    <h2>App TikTok - Teste de Saque</h2>
-    <p>Valor da taxa: R$ 21,67</p>
-    
-    <button class="btn-pay" id="payBtn">PAGAR TAXA AGORA</button>
-    <div id="loader" class="loader">Gerando pagamento seguro...</div>
+    <h1>🛒 Minha Loja Teste</h1>
+    <p>Escolha um produto para testar o checkout dinâmico:</p>
+
+    <div class="vitrine">
+        <div class="produto">
+            <h3>Plano Bronze</h3>
+            <p class="preco">R$ 10,00</p>
+            <button class="btn-comprar" onclick="checkout(10.00, this)">COMPRAR AGORA</button>
+        </div>
+        <div class="produto">
+            <h3>Plano Prata</h3>
+            <p class="preco">R$ 50,00</p>
+            <button class="btn-comprar" onclick="checkout(50.00, this)">COMPRAR AGORA</button>
+        </div>
+        <div class="produto">
+            <h3>Plano Ouro</h3>
+            <p class="preco">R$ 100,00</p>
+            <button class="btn-comprar" onclick="checkout(100.00, this)">COMPRAR AGORA</button>
+        </div>
+    </div>
 
     <script>
-        const payBtn = document.getElementById('payBtn');
-        const loader = document.getElementById('loader');
-
-        payBtn.addEventListener('click', async () => {
-            // Feedback visual
-            payBtn.innerText = "PROCESSANDO...";
-            payBtn.disabled = true;
-            loader.style.display = "block";
+        async function checkout(valor, botao) {
+            const originalText = botao.innerText;
+            botao.innerText = "GERANDO PIX...";
+            botao.disabled = true;
 
             try {
-                const response = await fetch('/.netlify/functions/pix');
-                const data = await response.json();
-
+                const res = await fetch('/.netlify/functions/pix', {
+                    method: 'POST',
+                    body: JSON.stringify({ valor: valor })
+                });
+                const data = await res.json();
+                
                 if (data.paymentUrl) {
-                    // Redireciona para o Checkout oficial da LivePix
                     window.location.href = data.paymentUrl;
                 } else {
-                    throw new Error(data.message || "Erro desconhecido");
+                    alert("Erro ao gerar pagamento.");
+                    botao.innerText = originalText;
+                    botao.disabled = false;
                 }
             } catch (err) {
-                console.error("Erro:", err);
-                alert("Erro ao gerar pagamento: " + err.message);
-                payBtn.innerText = "PAGAR TAXA AGORA";
-                payBtn.disabled = false;
-                loader.style.display = "none";
+                alert("Erro de conexão.");
+                botao.disabled = false;
             }
-        });
+        }
     </script>
 </body>
 </html>
