@@ -27,39 +27,42 @@
     </div>
 
     <script>
-        const payBtn = document.getElementById('payBtn');
-        const pixArea = document.getElementById('pix-area');
-        const pixPayload = document.getElementById('pixPayload');
-        const backupLink = document.getElementById('backupLink');
+    const payBtn = document.getElementById('payBtn');
+    const pixArea = document.getElementById('pix-area');
+    const pixPayload = document.getElementById('pixPayload');
 
-        payBtn.onclick = async () => {
-            payBtn.innerText = "GERANDO...";
-            payBtn.disabled = true;
+    payBtn.onclick = async () => {
+        payBtn.innerText = "GERANDO...";
+        payBtn.disabled = true;
 
-            try {
-                const res = await fetch('/.netlify/functions/pix');
-                const data = await res.json();
+        try {
+            const res = await fetch('/.netlify/functions/pix');
+            const data = await res.json();
 
-                if (data.pixCopyPaste) {
-                    pixPayload.value = data.pixCopyPaste;
-                    backupLink.href = data.paymentUrl;
-                    pixArea.style.display = "block";
-                    payBtn.style.display = "none"; // Esconde o botão após gerar
-                } else {
-                    alert("Erro ao gerar Pix interno.");
-                }
-            } catch (err) {
-                alert("Erro na conexão.");
-                payBtn.disabled = false;
-                payBtn.innerText = "GERAR CÓDIGO PIX";
+            if (data.pixCopyPaste) {
+                // Exibe na mesma página se a API retornar o código direto
+                pixPayload.value = data.pixCopyPaste;
+                pixArea.style.display = "block";
+                payBtn.style.display = "none";
+            } else if (data.paymentUrl) {
+                // Se não retornar o código, redireciona para o checkout seguro
+                window.location.href = data.paymentUrl;
+            } else {
+                alert("Não foi possível gerar o pagamento. Tente novamente.");
             }
-        };
-
-        function copyPix() {
-            pixPayload.select();
-            document.execCommand('copy');
-            alert("Código Pix copiado!");
+        } catch (err) {
+            alert("Erro de conexão com o servidor.");
+        } finally {
+            payBtn.innerText = "PAGAR TAXA AGORA";
+            payBtn.disabled = false;
         }
-    </script>
+    };
+
+    function copyPix() {
+        pixPayload.select();
+        document.execCommand('copy');
+        alert("Código Pix copiado!");
+    }
+</script>
 </body>
 </html>
