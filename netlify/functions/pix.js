@@ -11,38 +11,48 @@ exports.handler = async (event) => {
     if (event.httpMethod === "OPTIONS") return { statusCode: 200, headers, body: "" };
 
     try {
+        // 1. Pegar o total enviado pelo carrinho
         const body = JSON.parse(event.body);
-        const valorEmCentavos = Math.round(body.valor * 100);
+        const valorCentavos = Math.round(body.valor * 100); // Converte R$ para centavos
 
         const clientId = "d8b77fe4-0267-4057-9a7c-74a022ee1b6a";
         const clientSecret = "TpFd9aUHi/dH3tF7dMwz2tPHm6dE3hx4I55fALYyunUtJUF7h4N6uXDGM/SOome+wWE5RqTccBufdKZJ5mWLtdcrCALzQ2+UhSMkcQYXG/EK9ChwkMOfQ4K62G4HDpWsD2K5AI8u3Rt/kZfJ7eHBzQXCaNNUk9Nega2yvT8gxUw";
 
-        // 1. Token
-        const auth = await axios.post('https://oauth.livepix.gg/oauth2/token', 
+        // 2. Autenticação OAuth2
+        const authResponse = await axios.post(
+            'https://oauth.livepix.gg/oauth2/token',
             qs.stringify({
                 grant_type: 'client_credentials',
                 client_id: clientId,
                 client_secret: clientSecret,
                 scope: 'payments:write'
-            }), 
+            }),
             { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
         );
 
-        // 2. Criar Pagamento
+        const token = authResponse.data.access_token;
+
+        // 3. Criar Pagamento Dinâmico
         const response = await axios.post('https://api.livepix.gg/v2/payments', {
-            amount: valorEmCentavos,
+            amount: valorCentavos, 
             currency: "BRL",
-            redirectUrl: "https://apilivepix.netlify.app/"
+            redirectUrl: "https://apilivepix.netlify.app/",
+            correlationID: `motoparts-${Date.now()}` // Identificador único da compra
         }, {
-            headers: { Authorization: `Bearer ${auth.data.access_token}` }
+            headers: { 
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json"
+            }
         });
 
+        // Retorna a URL de Checkout (Estilo Mercado Pago)
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({ paymentUrl: response.data.data.redirectUrl })
         };
     } catch (error) {
+        console.error("Erro:", error.response ? error.response.data : error.message);
         return { statusCode: 500, headers, body: JSON.stringify({ error: error.message }) };
     }
 };
