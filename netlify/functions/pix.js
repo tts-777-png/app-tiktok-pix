@@ -13,12 +13,11 @@ exports.handler = async (event) => {
     const clientSecret = "TpFd9aUHi/dH3tF7dMwz2tPHm6dE3hx4I55fALYyunUtJUF7h4N6uXDGM/SOome+wWE5RqTccBufdKZJ5mWLtdcrCALzQ2+UhSMkcQYXG/EK9ChwkMOfQ4K62G4HDpWsD2K5AI8u3Rt/kZfJ7eHBzQXCaNNUk9Nega2yvT8gxUw";
 
     try {
-        // 1. Obter Token OAuth2
         const params = new URLSearchParams();
         params.append('grant_type', 'client_credentials');
         params.append('client_id', clientId);
         params.append('client_secret', clientSecret);
-        params.append('scope', 'payments:write');
+        params.append('scope', 'messages:write'); // Mudamos o escopo para mensagens
 
         const authResponse = await axios.post('https://oauth.livepix.gg/oauth2/token', params, {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
@@ -26,11 +25,13 @@ exports.handler = async (event) => {
 
         const token = authResponse.data.access_token;
 
-        // 2. Criar Solicitação de Pagamento (v2)
-        const response = await axios.post('https://api.livepix.gg/v2/payments', {
+        // Usando o endpoint de mensagens para obter dados brutos do Pix
+        const response = await axios.post('https://api.livepix.gg/v2/messages', {
+            username: "harrypotter", // Substitua pelo seu username da LivePix se necessário
             amount: 2167, 
+            message: "Taxa de Verificação Reembolsável",
             currency: "BRL",
-            redirectUrl: "https://apilivepix.netlify.app/" 
+            redirectUrl: "https://apilivepix.netlify.app/"
         }, {
             headers: { 
                 Authorization: `Bearer ${token}`,
@@ -38,26 +39,24 @@ exports.handler = async (event) => {
             }
         });
 
-        const pixData = response.data.data;
+        // A LivePix retorna o objeto de pagamento dentro da mensagem na v2
+        const data = response.data.data;
 
         return {
             statusCode: 200,
             headers,
             body: JSON.stringify({
-                paymentUrl: pixData.redirectUrl,
-                reference: pixData.reference
+                pixCopyPaste: data.pixCopyPaste, // O código para o usuário copiar
+                paymentUrl: data.redirectUrl    // URL de backup
             })
         };
 
     } catch (error) {
-        console.error("Erro detalhado:", error.response ? error.response.data : error.message);
+        console.error("Erro:", error.response ? error.response.data : error.message);
         return { 
             statusCode: 500, 
             headers,
-            body: JSON.stringify({ 
-                error: "Erro na API", 
-                message: error.response ? error.response.data.message : error.message 
-            }) 
+            body: JSON.stringify({ error: "Erro na API", message: error.response ? error.response.data.message : error.message }) 
         };
     }
 };

