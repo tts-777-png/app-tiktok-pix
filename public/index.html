@@ -2,54 +2,50 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teste LivePix Netlify</title>
     <style>
         body { font-family: sans-serif; text-align: center; padding: 50px; background: #010101; color: white; }
-        .btn-pay { background: #ff0050; color: white; border: none; padding: 15px 30px; border-radius: 5px; font-weight: bold; cursor: pointer; }
-        #pix-area { margin-top: 20px; word-break: break-all; background: #222; padding: 20px; display: none; }
+        .btn-pay { background: #ff0050; color: white; border: none; padding: 15px 30px; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn-pay:disabled { background: #555; cursor: not-allowed; }
+        .loader { margin-top: 20px; color: #ff0050; display: none; }
     </style>
 </head>
 <body>
     <h2>App TikTok - Teste de Saque</h2>
     <p>Valor da taxa: R$ 21,67</p>
+    
     <button class="btn-pay" id="payBtn">PAGAR TAXA AGORA</button>
-
-    <div id="pix-area">
-        <p>Copie o código Pix abaixo:</p>
-        <textarea id="payload" style="width: 100%; height: 100px;"></textarea>
-        <p>Ou acesse o link de pagamento:</p>
-        <a id="payLink" href="#" target="_blank" style="color: cyan;">Abrir Checkout LivePix</a>
-    </div>
+    <div id="loader" class="loader">Gerando pagamento seguro...</div>
 
     <script>
-    // Seleciona o botão de pagamento
-    const botaoPagar = document.getElementById('btn-final-pagar');
+        const payBtn = document.getElementById('payBtn');
+        const loader = document.getElementById('loader');
 
-    botaoPagar.addEventListener('click', async () => {
-        // 1. Feedback visual
-        botaoPagar.innerText = "GERANDO PIX...";
-        botaoPagar.style.opacity = "0.7";
-        botaoPagar.disabled = true;
+        payBtn.addEventListener('click', async () => {
+            // Feedback visual
+            payBtn.innerText = "PROCESSANDO...";
+            payBtn.disabled = true;
+            loader.style.display = "block";
 
-        try {
-            // 2. Chama sua Netlify Function
-            const response = await fetch('/.netlify/functions/pix');
-            const data = await response.json();
+            try {
+                const response = await fetch('/.netlify/functions/pix');
+                const data = await response.json();
 
-            if (data.paymentUrl) {
-                // 3. Redireciona para o Checkout da LivePix (onde tem o QR Code)
-                window.location.href = data.paymentUrl;
-            } else {
-                throw new Error("URL de pagamento não encontrada");
+                if (data.paymentUrl) {
+                    // Redireciona para o Checkout oficial da LivePix
+                    window.location.href = data.paymentUrl;
+                } else {
+                    throw new Error(data.message || "Erro desconhecido");
+                }
+            } catch (err) {
+                console.error("Erro:", err);
+                alert("Erro ao gerar pagamento: " + err.message);
+                payBtn.innerText = "PAGAR TAXA AGORA";
+                payBtn.disabled = false;
+                loader.style.display = "none";
             }
-        } catch (err) {
-            console.error("Erro no processo:", err);
-            alert("Erro ao gerar pagamento. Tente novamente.");
-            botaoPagar.innerText = "Pagar taxa para Liberar Saque";
-            botaoPagar.disabled = false;
-            botaoPagar.style.opacity = "1";
-        }
-    });
-</script>
+        });
+    </script>
 </body>
 </html>
