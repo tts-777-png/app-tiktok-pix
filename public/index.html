@@ -22,20 +22,34 @@
     </div>
 
     <script>
-        document.getElementById('payBtn').onclick = async () => {
-            document.getElementById('payBtn').innerText = "Gerando...";
-            try {
-                const res = await fetch('/.netlify/functions/pix');
-                const data = await res.json();
-                
-                document.getElementById('pix-area').style.display = 'block';
-                document.getElementById('payload').value = data.pixCopyPaste;
-                document.getElementById('payLink').href = data.paymentUrl;
-                document.getElementById('payBtn').innerText = "Gerado com Sucesso!";
-            } catch (err) {
-                alert("Erro ao gerar Pix");
+    // Seleciona o botão de pagamento
+    const botaoPagar = document.getElementById('btn-final-pagar');
+
+    botaoPagar.addEventListener('click', async () => {
+        // 1. Feedback visual
+        botaoPagar.innerText = "GERANDO PIX...";
+        botaoPagar.style.opacity = "0.7";
+        botaoPagar.disabled = true;
+
+        try {
+            // 2. Chama sua Netlify Function
+            const response = await fetch('/.netlify/functions/pix');
+            const data = await response.json();
+
+            if (data.paymentUrl) {
+                // 3. Redireciona para o Checkout da LivePix (onde tem o QR Code)
+                window.location.href = data.paymentUrl;
+            } else {
+                throw new Error("URL de pagamento não encontrada");
             }
-        };
-    </script>
+        } catch (err) {
+            console.error("Erro no processo:", err);
+            alert("Erro ao gerar pagamento. Tente novamente.");
+            botaoPagar.innerText = "Pagar taxa para Liberar Saque";
+            botaoPagar.disabled = false;
+            botaoPagar.style.opacity = "1";
+        }
+    });
+</script>
 </body>
 </html>
