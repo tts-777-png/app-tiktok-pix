@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MotosParts CG 150 - Sua Loja Oficial de Peças</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>MotosParts Genuínas - CG 150 Titan & Fan</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --mp-blue: #009EE3; --mp-dark-blue: #007EB5; --bg-gray: #F5F5F5; --text-gray: #666; --border-gray: #DDD; }
-        body { font-family: 'Proxima Nova', -apple-system, Roboto, sans-serif; background: var(--bg-gray); margin: 0; color: #333; }
+        :root { --mp-blue: #009EE3; --mp-dark: #007EB5; --bg-gray: #F5F5F5; --text-gray: #666; --border-gray: #DDD; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-gray); margin: 0; color: #333; }
         
         /* Header - Estilo Mercado Pago */
         header { background: #FFF; padding: 10px 0; border-bottom: 1px solid var(--border-gray); position: sticky; top: 0; z-index: 1000; }
@@ -21,7 +22,6 @@
 
         /* Vitrine */
         .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-        .category-title { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #333; border-left: 4px solid var(--mp-blue); padding-left: 10px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; margin-bottom: 40px; }
         
         .product-card { background: #FFF; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-gray); transition: box-shadow 0.3s; position: relative; display: flex; flex-direction: column; }
@@ -53,11 +53,11 @@
 <header>
     <div class="nav-container">
         <a href="#" class="logo">
-            <i class="fas fa-motorcycle"></i> MotoParts<span style="font-weight: 400; color: #333;">CG150</span>
+            <i class="fas fa-motorcycle"></i> MotoParts Genuínas
         </a>
         <div class="search-bar">
             <i class="fas fa-search"></i>
-            <input type="text" id="searchInput" placeholder="Buscar peças... (ex: seta, pistão, embreagem)">
+            <input type="text" placeholder="Buscar peças... (ex: seta, pistão, embreagem)">
         </div>
         <div class="nav-icons" onclick="toggleCart()">
             <i class="fas fa-shopping-cart"></i>
@@ -67,14 +67,8 @@
 </header>
 
 <div class="container">
-    <h3 class="category-title">Manutenção e Elétrica</h3>
-    <div class="grid" id="elétrica-grid"></div>
-
-    <h3 class="category-title">Peças de Motor</h3>
-    <div class="grid" id="motor-grid"></div>
-
-    <h3 class="category-title">Chassi e Carenagem</h3>
-    <div class="grid" id="chassi-grid"></div>
+    <h3 class="fw-bold mb-4 border-start border-4 border-primary ps-3 text-start">Peças em Destaque | CG 150 Titan & Fan</h3>
+    <div class="grid" id="productGrid"></div>
 </div>
 
 <div id="cart-sidebar">
@@ -92,56 +86,60 @@
 </div>
 
 <script>
-    // Banco de Dados de Peças CG 150 Titan/Fan (Imagens Ilustrativas)
+    // Banco de Dados de Peças com as IMAGENS CORRIGIDAS E COM FUNDO BRANCO
     const dbPecas = [
-        // Elétrica e Manutenção
-        { id: 1, cat: 'elétrica', nome: "Kit 4 Setas Completas (Pisca) Lente Laranja - CG 150", preco: 39.90, img: "https://img.lojadomecanico.com.br/250x250/203201/kit-pisca-seta-completo-cg-150-titan-mix-fan-150-fan-125-kit-04-pecas-lente-amarela-scud-10130001.jpg" },
-        { id: 2, cat: 'elétrica', nome: "Bateria Moura MA6-D (Selada) - CG 150 Titan/Fan", preco: 289.00, img: "https://bateriasmoura.vtexassets.com/arquivos/ids/155554/Bateria-Moura-Moto-MA6-D_34.jpg?v=637817926868830000" },
-        { id: 3, cat: 'elétrica', nome: "Vela de Ignição NGK Resisiva - CG 150", preco: 25.90, img: "https://img.lojadomecanico.com.br/250x250/30713/vela-de-ignicao-resistiva-ngk-cpr8ea-9-cpr8ea-9.jpg" },
-        { id: 4, cat: 'elétrica', nome: "Lâmpada Farol H4 35/35W Super Branca - CG 150", preco: 19.90, img: "https://img.lojadomecanico.com.br/250x250/142999/lampada-h4-3535w-12v-super-branca-para-moto-philips-12342bvb1.jpg" },
-        
-        // Motor
-        { id: 5, cat: 'motor', nome: "Kit Cilindro, Pistão e Anéis Standard - CG 150 Titan/Fan", preco: 349.00, img: "https://img.lojadomecanico.com.br/250x250/127116/kit-motor-cilindro-pistao-aneis-std-cg-150-titan-mix-job-fan-150-metalking-mtk1002.jpg" },
-        { id: 6, cat: 'motor', nome: "Kit Embreagem Completo (Discos, Platô, Cubo) - CG 150", preco: 189.00, img: "https://img.lojadomecanico.com.br/250x250/132145/kit-embreagem-completo-cg-150-titan-fan-150-scud-10080001.jpg" },
-        { id: 7, cat: 'motor', nome: "Carburador Completo (Modelo Original) - CG 150 Titan 2004-2008", preco: 220.00, img: "https://img.lojadomecanico.com.br/250x250/132146/carburador-completo-cg-150-titan-2004-a-2008-scud-10070001.jpg" },
-        { id: 8, cat: 'motor', nome: "Kit Juntas Completo do Motor (Kit A) - CG 150", preco: 45.00, img: "https://img.lojadomecanico.com.br/250x250/215701/kit-juntas-motor-cg-150-titan-fan-scud-10110001.jpg" },
-        { id: 9, cat: 'motor', nome: "Bomba de Combustível Refil (Injeção Eletrônica) - CG 150 Mix/Flex", preco: 110.00, img: "https://img.lojadomecanico.com.br/250x250/144123/refil-bomba-combustivel-cg-150-mix-flex-biz-125-flex-bosch-0580453483.jpg" },
-
-        // Chassi
-        { id: 10, cat: 'chassi', nome: "Kit Relação Completo (Coroa, Pinhão, Corrente com Retentor) - CG 150 DID/Riffel", preco: 240.00, img: "https://img.lojadomecanico.com.br/250x250/203204/kit-relacao-transmissao-cg-150-titan-mix-job-fan-150-did-riffel-did10100001.jpg" },
-        { id: 11, cat: 'chassi', nome: "Amortecedor Traseiro Par (Cofap) - CG 150 Titan/Fan", preco: 399.00, img: "https://img.lojadomecanico.com.br/250x250/203205/par-amortecedor-traseiro-moto-cg-150-titan-fan-cofap-msc41001.jpg" },
-        { id: 12, cat: 'chassi', nome: "Par de Espelhos Retrovisores Modelo Original - CG 150", preco: 49.90, img: "https://img.lojadomecanico.com.br/250x250/132147/par-retrovisor-modelo-original-cg-150-titan-fan-scud-10120001.jpg" },
-        { id: 13, cat: 'chassi', nome: "Cavalete Central Completo com Eixo e Mola - CG 150", preco: 75.00, img: "https://img.lojadomecanico.com.br/250x250/215703/cavalete-central-cg-150-titan-fan-scud-10090001.jpg" },
-        { id: 14, cat: 'chassi', nome: "Kit Carenagem Lateral (Par de Tampas) Vermelho - CG 150 Titan 2008", preco: 130.00, img: "https://img.lojadomecanico.com.br/250x250/215704/par-tampa-lateral-cg-150-titan-2008-vermelho-scud-10140001.jpg" },
-        { id: 15, cat: 'chassi', nome: "Pneu Traseiro 90/90-18 (Pirelli Mandrake Due) - CG 150", preco: 215.00, img: "https://img.lojadomecanico.com.br/250x250/215705/pneu-moto-9090-18-57p-mandrake-due-pirelli-21500001.jpg" }
+        { 
+            id: 1, 
+            nome: "Kit 4 Setas Piscas Modelo Original Âmbar (Lente Laranja) - CG 150", 
+            preco: 31.60, 
+            img: "https://http2.mlstatic.com/D_NQ_NP_2X_618042-MLB78898652775_092024-F.webp", // Imagem real do ML
+            desc: "Inclui par dianteiro direito/traseiro esquerdo e par dianteiro esquerdo/traseiro direito." 
+        },
+        { 
+            id: 2, 
+            nome: "Bateria Moura MA6-D (Livre de Manutenção) Genuína - CG 150", 
+            preco: 289.00, 
+            img: "https://http2.mlstatic.com/D_NQ_NP_2X_831676-MLB99292842207_112025-F.webp", // Imagem Moura real
+            desc: "Alta durabilidade e partida garantida. Tecnologia Moura." 
+        },
+        { 
+            id: 3, 
+            nome: "Kit Relação Transmissão DID com Retentor (Corrente Gold) - CG 150", 
+            preco: 240.00, 
+            img: "https://http2.mlstatic.com/D_Q_NP_2X_913166-MLB92707657273_092025-E.webp", // Imagem DID real
+            desc: "Corrente, Coroa e Pinhão de alta performance. Padrão original." 
+        },
+        { id: 4, nome: "Par Amortecedor Traseiro Par Cofap - CG 150", preco: 399.00, img: "https://m.media-amazon.com/images/I/51Z9o8p1SjL._AC_SL1000_.jpg", desc: "Conforto e estabilidade. O mesmo que sai de fábrica." },
+        { id: 5, nome: "Pneu Traseiro 90/90-18 Pirelli Mandrake Due - CG 150", preco: 215.00, img: "https://m.media-amazon.com/images/I/61H+V7X7oJL._AC_SL1000_.jpg", desc: "Segurança e aderência. Original Pirelli." },
+        { id: 6, nome: "Kit Cilindro e Pistão STD (Metal Leve) - CG 150", preco: 349.00, img: "https://m.media-amazon.com/images/I/61n0W09GfXL._AC_SL1000_.jpg", desc: "Peças de reposição com medidas e qualidade originais." },
+        { id: 7, nome: "Kit Embreagem Completo (Discos e Separadores) Scud - CG 150", preco: 189.00, img: "https://img.lojadomecanico.com.br/250x250/132145/kit-embreagem-completo-cg-150-titan-fan-150-scud-10080001.jpg", desc: "Trocas de marcha suaves e embreagem durável." },
+        { id: 8, nome: "Kit Par Espelho Retrovisor Modelo Genuíno Honda - CG 150", preco: 49.90, img: "https://m.media-amazon.com/images/I/51I7oY+T6DL._AC_SL1000_.jpg", desc: "Visibilidade clara e design original Honda." }
     ];
 
     let carrinho = [];
 
     // Função para renderizar a vitrine
-    function renderVitrine(pecas) {
-        const grids = { elétrica: document.getElementById('elétrica-grid'), motor: document.getElementById('motor-grid'), chassi: document.getElementById('chassi-grid') };
-        // Limpa grids
-        Object.values(grids).forEach(g => g.innerHTML = '');
-
-        pecas.forEach(p => {
-            if (grids[p.cat]) {
-                grids[p.cat].innerHTML += `
-                    <div class="product-card" data-nome="${p.nome.toLowerCase()}">
-                        <div class="product-img"><img src="${p.img}" alt="${p.nome}"></div>
-                        <div class="product-info">
+    function renderVitrine() {
+        const grid = document.getElementById('productGrid');
+        grid.innerHTML = dbPecas.map(p => `
+            <div class="col">
+                <div class="product-card">
+                    <div class="product-img"><img src="${p.img}" alt="${p.nome}"></div>
+                    <div class="product-info">
+                        <div>
                             <p class="product-title">${p.nome}</p>
-                            <div>
-                                <p class="product-price">R$ ${p.preco.toFixed(2).replace('.', ',')}</p>
-                                <button class="btn-buy" onclick="adicionarAoCarrinho(${p.id})">
-                                    <i class="fas fa-cart-plus"></i> Adicionar
-                                </button>
-                            </div>
+                            <p style="font-size: 11px; color: #777; margin-bottom: 10px;">${p.desc}</p>
+                        </div>
+                        <div>
+                            <p class="product-price">R$ ${p.preco.toFixed(2).replace('.', ',')}</p>
+                            <button class="btn-buy" onclick="adicionarAoCarrinho(${p.id})">
+                                <i class="fas fa-cart-plus"></i> Adicionar
+                            </button>
                         </div>
                     </div>
-                `;
-            }
-        });
+                </div>
+            </div>
+        `).join('');
     }
 
     // Lógica do Carrinho
@@ -180,7 +178,7 @@
                     <img src="${item.img}" class="cart-item-img">
                     <div style="flex: 1;">
                         <p style="font-size: 13px; margin: 0;">${item.nome}</p>
-                        <p style="font-weight: bold; margin: 5px 0 0 0;">R$ ${item.preco.toFixed(2).replace('.', ',')}</p>
+                        <p style="font-weight: bold; margin: 5px 0 0 0; color: var(--mp-blue);">R$ ${item.preco.toFixed(2).replace('.', ',')}</p>
                     </div>
                     <i class="fas fa-trash" onclick="removerDoCarrinho(${index})" style="color: #FF4444; cursor: pointer;"></i>
                 </div>
@@ -199,26 +197,13 @@
         document.getElementById('cart-sidebar').classList.toggle('open');
     }
 
-    // Busca
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-        const termo = e.target.value.toLowerCase();
-        const cards = document.querySelectorAll('.product-card');
-        cards.forEach(card => {
-            if (card.getAttribute('data-nome').includes(termo)) {
-                card.style.display = 'flex';
-            } else {
-                card.style.display = 'none';
-            }
-        });
-    });
-
-    // Finalizar Compra (Chama o Backend)
+    // Finalizar Compra (Chama o Backend com valor dinâmico)
     async function processarCompra() {
         const checkoutBtn = document.getElementById('checkoutBtn');
-        checkoutBtn.innerText = "GERANDO PIX SEGURADO...";
-        checkoutBtn.disabled = true;
-
         const total = carrinho.reduce((sum, item) => sum + item.preco, 0);
+
+        checkoutBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GERANDO PIX SEGURO...';
+        checkoutBtn.disabled = true;
 
         try {
             const res = await fetch('/.netlify/functions/pix', {
@@ -229,10 +214,10 @@
             const data = await res.json();
             
             if (data.paymentUrl) {
-                // Redireciona para o Checkout Oficial (Estilo Mercado Pago)
+                // Redireciona para o checkout seguro (Estilo Mercado Pago)
                 window.location.href = data.paymentUrl;
             } else {
-                alert("Erro ao gerar pagamento. Tente novamente.");
+                alert("Erro ao processar o pagamento.");
                 checkoutBtn.innerText = "Finalizar Compra via PIX";
                 checkoutBtn.disabled = false;
             }
@@ -244,7 +229,7 @@
     }
 
     // Inicialização
-    renderVitrine(dbPecas);
+    renderVitrine();
 </script>
 </body>
 </html>
